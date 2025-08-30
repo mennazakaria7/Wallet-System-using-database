@@ -1,93 +1,147 @@
-
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.*;
-import static java.sql.DriverManager.getConnection;
-
+import java.util.Scanner;
 
 public class UserDAO {
 
-    Scanner input=new Scanner(System.in);
-    public int insert_in_db(User newuser) throws SQLException {
+    private Scanner input = new Scanner(System.in);
 
+
+    public void AddUser() throws SQLException {
+        String username;
+        while(true){
+            System.out.print("Enter username: ");
+            username = input.nextLine();
+
+            if (usernameExists(username)){
+                System.out.println("Username already exists, please choose another one");
+            } else {
+                break;
+            }
+        }
+
+        System.out.print("Enter password: ");
+        String password = input.nextLine();
+
+        System.out.print("Enter phone number: ");
+        String phonenumber = input.nextLine();
+
+        System.out.print("Enter initial balance: ");
+        BigDecimal balance = input.nextBigDecimal();
+        input.nextLine();
+
+        User newUser = new User(username, password, phonenumber, balance);
+
+        int id = insertUser(newUser);
+        System.out.println("User added successfully with ID: " + id);
+    }
+
+
+    public boolean usernameExists(String username) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM users WHERE user_name=?";
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if(rs.next()){
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    public int insertUser(User newUser) throws SQLException {
         String sql = "INSERT INTO users (user_name, password, phone_number, balance, creation_date) VALUES (?, ?, ?, ?, NOW())";
 
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
              PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, newuser.getUsername());
-            ps.setString(2, newuser.getPassword());
-            ps.setString(3, newuser.getPhoneNumber());
-            ps.setBigDecimal(4, newuser.getBalance() == null ? new BigDecimal("0.00") : newuser.getBalance());
+            ps.setString(1, newUser.getUsername());
+            ps.setString(2, newUser.getPassword());
+            ps.setString(3, newUser.getPhonenumber());
+            ps.setBigDecimal(4, newUser.getBalance() == null ? new BigDecimal("0.00") : newUser.getBalance());
 
             int rows = ps.executeUpdate();
             if (rows == 0) throw new SQLException("Insert failed, no rows affected.");
 
-            int id = -1;
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
-                    id = keys.getInt(1);
-                    newuser.setId(id);
+                    int id = keys.getInt(1);
+                    newUser.setId(id);
+                    return id;
                 } else {
                     throw new SQLException("Insert succeeded but no ID returned.");
                 }
             }
-
-            return id;
-
         }
     }
-public boolean username_exist(String username) throws SQLException {
 
-    String sql = "SELECT COUNT(*) FROM users WHERE user_name=?";
 
-    try (Connection connection = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+    public User getUserByUsername(String username) throws SQLException {
+        String sql = "SELECT * FROM users WHERE user_name = ?";
 
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-        ps.setString(1, username);
+            ps.setString(1, username);
 
-        try(ResultSet rs =ps.executeQuery()) {
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
 
-if(rs.next()){
-    return rs.getInt(1)>0;
+                    int id = rs.getInt("user_id");
+                    String user_name = rs.getString("user_name");
+                    String password = rs.getString("password");
+                    String phone_number = rs.getString("phone_number");
+                    BigDecimal balance = rs.getBigDecimal("balance");
 
-}
+                    return new User(id, user_name, password, phone_number, balance);
+                } else {
+                    return null;
+                }
+            }
         }
     }
-    return false;
-}
 
-    public void AddUser() throws SQLException {
-        String username;
-        while(true){
-        System.out.print("Enter username:");
-        username= input.nextLine();
 
-        if (username_exist(username)){
-            System.out.println("Username already exists, please choose another one");
-        }
-else{
-    break;
+    public BigDecimal GetUserBalance(String username) throws SQLException {
+        String sql = "SELECT balance FROM users WHERE user_name=?";
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if(rs.next()){
+                    return rs.getBigDecimal("balance");
+                } else {
+                    return null;
+                }
+            }
         }
     }
+
+
+    public User UserLogin() throws SQLException {
+        System.out.print("Enter username: ");
+        String username = input.nextLine();
+
         System.out.print("Enter password: ");
-        String password= input.nextLine();
+        String password = input.nextLine();
 
-        System.out.print("Enter phone number: ");
-        String phonenumber= input.nextLine();
+        User user = getUserByUsername(username);
 
-        System.out.print("Enter initial balance: ");
-        BigDecimal balance=input.nextBigDecimal();
-
-        User newuser=new User(username,password,phonenumber,balance);
-
-
-        int id = this.insert_in_db(newuser);
-        System.out.println("User added successfully with ID: " + id);
+        if(user != null && user.getPassword().equals(password)){
+            return user;
+        } else {
+            return null;
+        }
     }
-
-
-    }
+}

@@ -4,8 +4,9 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
 
+        Controller controller=new Controller();
+        controller.MainMenu();
 
-        UserDAO dao = new UserDAO();
-        dao.AddUser();
+
     }
 }

@@ -10,13 +10,24 @@ public class User {
     private BigDecimal balance;
 
 
-    // Constructor
+    // Constructors
     public User(String username, String password, String phonenumber, BigDecimal balance) {
         this.username = username;
         this.password = password;
         this.phonenumber = phonenumber;
         this.balance = balance;
 
+
+    }
+    public User(int id, String username, String password, String phonenumber, BigDecimal balance) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.phonenumber = phonenumber;
+        this.balance = balance;
+    }
+
+    public User() {
 
     }
 
@@ -49,5 +60,7 @@ public class User {
     }
 
 
-
+    public String getPhonenumber() {
+        return phonenumber;
+    }
 }
