@@ -152,6 +152,106 @@ public class UserDAO {
         }
 
     }
+
+    public boolean RequestMoney(String recipient_username,String sender_username,BigDecimal amount)throws SQLException{
+
+String sql="INSERT INTO money_requests (sender_username,recipient_username,amount,status,request_date)"+
+        "VALUES  (?,?,?,'PENDING',NOW())";
+
+try(Connection connection=DriverManager.getConnection( "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+
+             PreparedStatement ps=connection.prepareStatement(sql)){
+
+              ps.setString(1,sender_username);
+              ps.setString(2,recipient_username);
+              ps.setBigDecimal(3,amount);
+
+             if (sender_username.equals(recipient_username)) {
+                 System.out.println("You cannot request money from yourself.");
+                 return false;
+             }
+
+              int rowsaffected= ps.executeUpdate();
+
+                 return rowsaffected>0;
+
+
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+        return false;
+
+
+
+    }
+
+    public void viewSentRequests(String sender_username) {
+        String sql = "SELECT idmoney_requests, recipient_username, amount, status, request_date " +
+                "FROM money_requests WHERE sender_username = ?";
+
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, sender_username);
+            ResultSet rs = ps.executeQuery();
+
+            System.out.println("---- Sent Money Requests ----");
+            while (rs.next()) {
+                int id = rs.getInt("idmoney_requests");
+                String recipient = rs.getString("recipient_username");
+                BigDecimal amount = rs.getBigDecimal("amount");
+                String status = rs.getString("status");
+                String date = rs.getString("request_date");
+
+                System.out.println("ID: " + id +
+                        " | To: " + recipient +
+                        " | Amount: " + amount +
+                        " | Status: " + status +
+                        " | Date: " + date);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    public void viewIncomingRequests(String recipient_username) {
+        String sql = "SELECT idmoney_requests, sender_username, amount, status, request_date " +
+                "FROM money_requests WHERE recipient_username = ?";
+
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, recipient_username);
+            ResultSet rs = ps.executeQuery();
+
+            System.out.println("---- Incoming Money Requests ----");
+            while (rs.next()) {
+                int id = rs.getInt("idmoney_requests");
+                String sender = rs.getString("sender_username");
+                BigDecimal amount = rs.getBigDecimal("amount");
+                String status = rs.getString("status");
+                String date = rs.getString("request_date");
+
+                System.out.println("ID: " + id +
+                        " | From: " + sender +
+                        " | Amount: " + amount +
+                        " | Status: " + status +
+                        " | Date: " + date);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
     public boolean SendMoneyFromOneToAnother(User sender, String recipient_username,BigDecimal amount) throws SQLException{
 
         String sql="Update users Set balance=? WHERE user_name=?";

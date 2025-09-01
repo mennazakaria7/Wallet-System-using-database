@@ -16,7 +16,10 @@ public class Controller {
             System.out.println("-----------------------------User Menu-----------------------------");
             System.out.println("press 1 to View your balance");
             System.out.println("press 2 to Change your password");
+            System.out.println("press 3 to request money from specific person:");
             System.out.println("press 4 to Send money to another person");
+            System.out.println("press 5 to View incoming requests");
+            System.out.println("press 6 to View sent requests");
             System.out.println("press 0 to logout");
             System.out.println("-----------------------------");
 
@@ -47,6 +50,22 @@ public class Controller {
                   }
                     break;
 
+                case "3":
+                    System.out.println("Enter the sender username( who will send you monet) :");
+                    String SendrUesrName=input.nextLine();
+
+
+                    System.out.println("Enter the amount you want request :");
+                    BigDecimal requested_amount=input.nextBigDecimal();
+
+                 userDAO.RequestMoney(loggedInUser.getUsername(),SendrUesrName,requested_amount);
+
+
+
+
+
+                    break;
+
                 case "4":
                     System.out.println("Enter the recipient username :");
                     String RecipientUesrName=input.nextLine();
@@ -64,6 +83,15 @@ public class Controller {
 
 
                     break;
+                case "5":
+               userDAO.viewIncomingRequests(loggedInUser.getUsername());
+
+                    break;
+                case "6":
+                    userDAO.viewSentRequests(loggedInUser.getUsername());
+                    break;
+
+
 
                 case "0":
                     return;
