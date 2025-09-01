@@ -51,6 +51,10 @@ public class User {
     public String getPassword() {
         return password;
     }
+    public void setPassword(String newpass) {
+        this.password = newpass;
+    }
+
 
     public String getPhoneNumber() {
         return phonenumber;

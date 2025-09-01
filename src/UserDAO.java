@@ -129,6 +129,59 @@ public class UserDAO {
     }
 
 
+    public boolean ChangeUserPassword(User user,String newpass)throws SQLException{
+
+        String sql="UPDATE users SET password=? WHERE user_name=?";
+
+
+        try(Connection connection=DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+            PreparedStatement ps=connection.prepareStatement(sql)) {
+
+            ps.setString(1, newpass);
+            ps.setString(2, user.getUsername());
+
+            if(ps.executeUpdate()>0){
+                user.setPassword(newpass);
+                return true;
+            }
+            else{
+                return false;
+            }
+
+        }
+
+    }
+    public boolean SendMoneyFromOneToAnother(User sender, String recipient_username,BigDecimal amount) throws SQLException{
+
+        String sql="Update users Set balance=? WHERE user_name=?";
+
+        try(Connection connection=DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
+           PreparedStatement ps=connection.prepareStatement(sql)){
+
+            BigDecimal SenderNewBalance=sender.getBalance().subtract(amount);
+
+            ps.setBigDecimal(1,SenderNewBalance);
+            ps.setString(2, sender.getUsername());
+            sender.setBalance(SenderNewBalance);
+            int rowsender=ps.executeUpdate();
+
+
+            BigDecimal recipient_old_balance=GetUserBalance(recipient_username);
+            BigDecimal recipient_new_balance=recipient_old_balance.add(amount);
+
+            ps.setBigDecimal(1,recipient_new_balance);
+            ps.setString(2,recipient_username);
+
+            int rowrecipent=ps.executeUpdate();
+
+            return rowsender > 0 && rowrecipent > 0;
+        }
+
+
+    }
+
     public User UserLogin() throws SQLException {
         System.out.print("Enter username: ");
         String username = input.nextLine();

@@ -15,10 +15,16 @@ public class Controller {
         while(true){
             System.out.println("-----------------------------User Menu-----------------------------");
             System.out.println("press 1 to View your balance");
+            System.out.println("press 2 to Change your password");
+            System.out.println("press 4 to Send money to another person");
             System.out.println("press 0 to logout");
             System.out.println("-----------------------------");
-            System.out.print("Enter Choice: ");
-            choice = input.nextLine();
+
+            choice = input.nextLine().trim();
+            while(choice.isEmpty()){
+                choice = input.nextLine().trim();
+            }
+
 
             switch (choice){
                 case "1":
@@ -26,6 +32,38 @@ public class Controller {
                     System.out.println("Your balance: " + balance);
                     break;
 
+                case "2":
+                    System.out.println("Enter New Password:");
+                    String newpass=input.nextLine();
+
+                  if(userDAO.ChangeUserPassword(loggedInUser,newpass)){
+
+                      System.out.println("Password updated to: " + loggedInUser.getPassword());
+
+                  }
+                  else{
+                      System.out.println("Password not changed");
+
+                  }
+                    break;
+
+                case "4":
+                    System.out.println("Enter the recipient username :");
+                    String RecipientUesrName=input.nextLine();
+
+                    System.out.println("Enter the amount you want send :");
+                    BigDecimal amount=input.nextBigDecimal();
+
+                    if( userDAO.SendMoneyFromOneToAnother(loggedInUser,RecipientUesrName,amount)){
+                        System.out.println("money was send successfully"+ "and your current balance is "+loggedInUser.getBalance());
+
+                    }
+                    else{
+                        System.out.println("Error occurred try again later");
+                    }
+
+
+                    break;
 
                 case "0":
                     return;
@@ -57,6 +95,7 @@ public class Controller {
                     if(loggedInUser != null){
                         System.out.println("Login successful! Welcome, " + loggedInUser.getUsername());
                         UserMenu(loggedInUser);
+
                     } else {
                         System.out.println("Invalid username or password!");
                     }
