@@ -130,7 +130,7 @@ public class Controller {
 
                 case "2":
                     System.out.println("YOUR TYPE ADMIN || USER CHOOSE");
-                    String Type=input.nextLine().toLowerCase();
+                    String Type=input.nextLine();
                         if(Type.equalsIgnoreCase("Admin")) {
                             Admin loggedInAdmin = adminDAO.AdminLogin();
                             if (loggedInAdmin != null) {
