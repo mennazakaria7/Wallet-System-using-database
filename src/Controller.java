@@ -119,7 +119,7 @@ public class Controller {
             switch (choice){
                 case "1":
                     System.out.println("YOUR TYPE ADMIN || USER CHOOSE");
-                    String type=input.nextLine().toLowerCase();
+                    String type=input.nextLine();
                 if(type.equalsIgnoreCase("Admin")) {
                     adminDAO.AdminRegister();
 
