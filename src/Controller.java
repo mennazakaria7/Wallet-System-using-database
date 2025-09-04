@@ -6,7 +6,7 @@ public class Controller {
 
     private UserDAO userDAO = new UserDAO();
     private Scanner input = new Scanner(System.in);
-
+    private AdminDAO adminDAO = new AdminDAO();
 
     public void UserMenu(User loggedInUser) throws SQLException {
 
@@ -106,6 +106,9 @@ public class Controller {
 
         while(true){
             System.out.println("-----------------------------Main Menu-----------------------------");
+
+
+
             System.out.println("press 1 to register");
             System.out.println("press 2 to login into your account");
             System.out.println("press 3 to exit");
@@ -115,10 +118,27 @@ public class Controller {
 
             switch (choice){
                 case "1":
-                    userDAO.AddUser();
+                    System.out.println("YOUR TYPE ADMIN || USER CHOOSE");
+                    String type=input.nextLine().toLowerCase();
+                if(type.equalsIgnoreCase("Admin")) {
+                    adminDAO.AdminRegister();
+
+                }
+                   else{ userDAO.AddUser();}
+
                     break;
 
                 case "2":
+                    System.out.println("YOUR TYPE ADMIN || USER CHOOSE");
+                    String Type=input.nextLine().toLowerCase();
+                        if(Type.equalsIgnoreCase("Admin")) {
+                            Admin loggedInAdmin = adminDAO.AdminLogin();
+                            if (loggedInAdmin != null) {
+                                AdminMenu(loggedInAdmin);
+
+                    }}
+                    else{
+
                     User loggedInUser = userDAO.UserLogin();
                     if(loggedInUser != null){
                         System.out.println("Login successful! Welcome, " + loggedInUser.getUsername());
@@ -127,12 +147,20 @@ public class Controller {
                     } else {
                         System.out.println("Invalid username or password!");
                     }
+                    }
                     break;
 
                 case "3":
                     System.out.println("Exiting program...");
-                    return;
+                    System.exit(0);
+                    break;
+
             }
-        }
     }
 }
+
+    private void AdminMenu(Admin loggedInAdmin) {
+
+
+    }
+    }
