@@ -30,7 +30,7 @@ public class UserDAO {
         BigDecimal balance = input.nextBigDecimal();
         input.nextLine();
 
-        User newUser = new User(username, password, phonenumber, balance);
+        User newUser = new User(username, password, phonenumber, balance,"Activated");
 
         int id = insertUser(newUser);
         System.out.println("User added successfully with ID: " + id);
@@ -100,8 +100,8 @@ public class UserDAO {
                     String password = rs.getString("password");
                     String phone_number = rs.getString("phone_number");
                     BigDecimal balance = rs.getBigDecimal("balance");
-
-                    return new User(id, user_name, password, phone_number, balance);
+                    String status = rs.getString("status");
+                    return new User(id, user_name, password, phone_number, balance,status);
                 } else {
                     return null;
                 }
@@ -185,7 +185,7 @@ try(Connection connection=DriverManager.getConnection( "jdbc:mysql://localhost:3
 
     }
 
-    public void viewSentRequests(String sender_username) {
+    public void viewSentRequests(String sender_username) throws SQLException {
         String sql = "SELECT idmoney_requests, recipient_username, amount, status, request_date " +
                 "FROM money_requests WHERE sender_username = ?";
 
@@ -196,26 +196,27 @@ try(Connection connection=DriverManager.getConnection( "jdbc:mysql://localhost:3
             ps.setString(1, sender_username);
             ResultSet rs = ps.executeQuery();
 
-            System.out.println("---- Sent Money Requests ----");
+            System.out.println("    ---- Sent Money Requests ----");
+            boolean hasRequests = false;
+
             while (rs.next()) {
+                hasRequests = true;
                 int id = rs.getInt("idmoney_requests");
                 String recipient = rs.getString("recipient_username");
                 BigDecimal amount = rs.getBigDecimal("amount");
                 String status = rs.getString("status");
-                String date = rs.getString("request_date");
+                Timestamp date = rs.getTimestamp("request_date");
+                String formattedDate = date.toLocalDateTime().toString().substring(0, 16);
 
-                System.out.println("ID: " + id +
-                        " | To: " + recipient +
-                        " | Amount: " + amount +
-                        " | Status: " + status +
-                        " | Date: " + date);
+                System.out.printf("%-5d %-10s %-10s %-10s %-20s%n",
+                        id, recipient, amount, status, formattedDate);
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            if (!hasRequests) {
+                System.out.println("    (No requests sent)");
+            }
         }
     }
-
 
 
     public void viewIncomingRequests(String recipient_username) {
@@ -229,23 +230,27 @@ try(Connection connection=DriverManager.getConnection( "jdbc:mysql://localhost:3
             ps.setString(1, recipient_username);
             ResultSet rs = ps.executeQuery();
 
-            System.out.println("---- Incoming Money Requests ----");
+            System.out.println("    ---- Incoming Money Requests ----");
+            boolean hasRequests = false;
+
             while (rs.next()) {
+                hasRequests = true;
                 int id = rs.getInt("idmoney_requests");
                 String sender = rs.getString("sender_username");
                 BigDecimal amount = rs.getBigDecimal("amount");
                 String status = rs.getString("status");
-                String date = rs.getString("request_date");
+                Timestamp date = rs.getTimestamp("request_date");
+                String formattedDate = date.toLocalDateTime().toString().substring(0, 16);
 
-                System.out.println("ID: " + id +
-                        " | From: " + sender +
-                        " | Amount: " + amount +
-                        " | Status: " + status +
-                        " | Date: " + date);
+                System.out.printf("%-5d %-10s %-10s %-10s %-20s%n",
+                        id, sender, amount, status, formattedDate);
             }
 
+            if (!hasRequests) {
+                System.out.println("    (No incoming requests)");
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

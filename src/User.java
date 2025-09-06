@@ -8,23 +8,24 @@ public class User {
     private String password;
     private String phonenumber;
     private BigDecimal balance;
-
+    private String status;
 
     // Constructors
-    public User(String username, String password, String phonenumber, BigDecimal balance) {
+    public User(String username, String password, String phonenumber, BigDecimal balance,String status) {
         this.username = username;
         this.password = password;
         this.phonenumber = phonenumber;
         this.balance = balance;
-
+this.status=status;
 
     }
-    public User(int id, String username, String password, String phonenumber, BigDecimal balance) {
+    public User(int id, String username, String password, String phonenumber, BigDecimal balance,String status) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.phonenumber = phonenumber;
         this.balance = balance;
+        this.status=status;
     }
 
     public User() {
@@ -54,8 +55,12 @@ public class User {
     public void setPassword(String newpass) {
         this.password = newpass;
     }
-
-
+    public void setStatus( String status) {
+        this.status = status;
+    }
+    public String getStatus() {
+        return status;
+    }
     public String getPhoneNumber() {
         return phonenumber;
     }
