@@ -122,25 +122,26 @@ public class AdminDAO extends UserDAO {
     public void ViewAllTrnsactions()throws SQLException {
 
 
-        String sql = "SELECT idmoney_requests,sender_username,recipient_username,request_date,status From money_requests ";
+        String sql = "SELECT idmoney_requests,sender_username,recipient_username,request_date, amount,status From money_requests ";
 
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
              PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             System.out.println("----------------------------- All Transactions -----------------------------");
-            System.out.printf("%-5s %-15s %-15s %-15s %-20s%n", "ID", "Sender", "Recipient", "Status", "RequestDate");
+            System.out.printf("%-5s  %-15s %-15s %-15s %-15s %-20s%n", "ID", "Sender", "Recipient","Amount","Status", "RequestDate");
 
             System.out.println("-------------------------------------------------------------------------------");
             while (rs.next()) {
                 int id = rs.getInt("idmoney_requests");
                 String sender = rs.getString("sender_username");
                 String recipient = rs.getString("recipient_username");
+                BigDecimal amount=rs.getBigDecimal("amount");
                 String status = rs.getString("status");
                 Date date = rs.getDate("request_date");
 
 
-                System.out.printf("%-5d %-15s %-15s %-15s %-20s%n", id, sender, recipient, status, date.toString());
+                System.out.printf("%-5d  %-15s %-15s %-15s %-15s %-20s%n", id, sender, recipient,amount,status, date.toString());
 
 
             }

@@ -153,37 +153,8 @@ public class UserDAO {
 
     }
 
-    public boolean RequestMoney(String recipient_username,String sender_username,BigDecimal amount)throws SQLException{
-
-String sql="INSERT INTO money_requests (sender_username,recipient_username,amount,status,request_date)"+
-        "VALUES  (?,?,?,'PENDING',NOW())";
-
-try(Connection connection=DriverManager.getConnection( "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
-
-             PreparedStatement ps=connection.prepareStatement(sql)){
-
-              ps.setString(1,sender_username);
-              ps.setString(2,recipient_username);
-              ps.setBigDecimal(3,amount);
-
-             if (sender_username.equals(recipient_username)) {
-                 System.out.println("You cannot request money from yourself.");
-                 return false;
-             }
-
-              int rowsaffected= ps.executeUpdate();
-
-                 return rowsaffected>0;
 
 
-} catch (SQLException e) {
-    e.printStackTrace();
-}
-        return false;
-
-
-
-    }
 
     public void viewSentRequests(String sender_username) throws SQLException {
         String sql = "SELECT idmoney_requests, recipient_username, amount, status, request_date " +
@@ -257,35 +228,67 @@ try(Connection connection=DriverManager.getConnection( "jdbc:mysql://localhost:3
 
 
 
-    public boolean SendMoneyFromOneToAnother(User sender, String recipient_username,BigDecimal amount) throws SQLException{
+    public boolean SendMoneyFromOneToAnother(User sender, String recipient_username, BigDecimal amount) throws SQLException {
+        String updateBalanceSQL = "UPDATE users SET balance = ? WHERE user_name = ?";
 
-        String sql="Update users Set balance=? WHERE user_name=?";
-
-        try(Connection connection=DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root");
-           PreparedStatement ps=connection.prepareStatement(sql)){
-
-            BigDecimal SenderNewBalance=sender.getBalance().subtract(amount);
-
-            ps.setBigDecimal(1,SenderNewBalance);
-            ps.setString(2, sender.getUsername());
-            sender.setBalance(SenderNewBalance);
-            int rowsender=ps.executeUpdate();
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/wallet_schema", "root", "root")) {
 
 
-            BigDecimal recipient_old_balance=GetUserBalance(recipient_username);
-            BigDecimal recipient_new_balance=recipient_old_balance.add(amount);
+            if (sender.getBalance().compareTo(amount) < 0) {
+                System.out.println(" Insufficient balance. Transaction cancelled.");
+                return false;
+            }
 
-            ps.setBigDecimal(1,recipient_new_balance);
-            ps.setString(2,recipient_username);
 
-            int rowrecipent=ps.executeUpdate();
+            if (sender.getUsername().equalsIgnoreCase(recipient_username)) {
+                System.out.println(" You cannot send money to yourself.");
+                return false;
+            }
 
-            return rowsender > 0 && rowrecipent > 0;
+
+            connection.setAutoCommit(false);
+
+            try (
+                    PreparedStatement psSender = connection.prepareStatement(updateBalanceSQL);
+                    PreparedStatement psRecipient = connection.prepareStatement(updateBalanceSQL)
+            ) {
+
+                BigDecimal newSenderBalance = sender.getBalance().subtract(amount);
+                psSender.setBigDecimal(1, newSenderBalance);
+                psSender.setString(2, sender.getUsername());
+                int rowSender = psSender.executeUpdate();
+
+
+                BigDecimal recipientOldBalance = GetUserBalance(recipient_username);
+                BigDecimal newRecipientBalance = recipientOldBalance.add(amount);
+                psRecipient.setBigDecimal(1, newRecipientBalance);
+                psRecipient.setString(2, recipient_username);
+                int rowRecipient = psRecipient.executeUpdate();
+
+
+                sender.setBalance(newSenderBalance);
+
+
+                if (rowSender > 0 && rowRecipient > 0) {
+                    connection.commit();
+                    System.out.println(" Money sent successfully.");
+                    return true;
+                } else {
+                    connection.rollback();
+                    System.out.println(" Transaction failed. Rolled back.");
+                    return false;
+                }
+
+            } catch (SQLException ex) {
+                connection.rollback();
+                throw ex;
+            } finally {
+                connection.setAutoCommit(true);
+            }
         }
-
-
     }
+
 
     public User UserLogin() throws SQLException {
         System.out.print("Enter username: ");
