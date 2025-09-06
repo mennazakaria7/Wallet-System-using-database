@@ -1,4 +1,5 @@
 🎯 Features
+
 👤 User Functionalities
 
 Register and create an account with a unique username and secure password.
